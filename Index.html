@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Background Remover</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    .box {
+      margin: 40px auto;
+      padding: 20px;
+      max-width: 400px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    }
+
+    h2 { margin-bottom: 20px; }
+
+    input[type="file"] { display: none; }
+
+    .upload-btn {
+      background: #00ffcc;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      display: inline-block;
+      margin: 10px;
+      color: black;
+    }
+
+    button {
+      background: #00ffcc;
+      border: none;
+      padding: 12px 20px;
+      margin: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      display: none;
+    }
+
+    .img-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-top: 10px;
+    }
+
+    #previewImg, #resultImg {
+      max-width: 100%;
+      border-radius: 12px;
+      display: block;
+      transition: 0.3s;
+    }
+
+    /* ⭐ FIXED: TRUE FULL RAINBOW GLOW (ALL COLORS BALANCED) */
+    .rainbow-glow {
+      border: 2px solid white;
+
+      box-shadow:
+        0 0 6px rgba(255, 0, 0, 0.65),      /* red */
+        0 0 6px rgba(255, 127, 0, 0.60),    /* orange */
+        0 0 6px rgba(255, 255, 0, 0.55),    /* yellow */
+        0 0 6px rgba(0, 255, 0, 0.50),      /* green */
+        0 0 6px rgba(0, 255, 255, 0.50),    /* cyan */
+        0 0 6px rgba(0, 0, 255, 0.55),      /* blue */
+        0 0 6px rgba(148, 0, 211, 0.55);    /* violet */
+
+      animation: glowPulse 2.5s infinite alternate;
+    }
+
+    @keyframes glowPulse {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.08); }
+    }
+
+    #resultImg {
+      display: none;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+    }
+
+    .overlay-text {
+      font-size: 16px;
+      font-weight: bold;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    .top-img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-bottom: 10px;
+
+      border: 2px solid white;
+
+      box-shadow:
+        0 0 6px rgba(0,255,255,0.5),
+        0 0 8px rgba(0,0,255,0.4);
+    }
+
+    .marquee {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      overflow: hidden;
+      background: rgba(0,0,0,0.35);
+      padding: 8px 0;
+      white-space: nowrap;
+    }
+
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: scroll 8s linear infinite;
+    }
+
+    .marquee span {
+      padding-right: 60px;
+      font-weight: bold;
+      font-size: 14px;
+
+      background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: textFlow 2s linear infinite;
+    }
+
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    @keyframes textFlow {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <img src="20260602_152109.jpg" class="top-img">
+
+  <h2>✨ AI Background Remover</h2>
+
+  <input type="file" id="fileInput" accept="image/*">
+
+  <label for="fileInput" class="upload-btn">📤 Upload Image</label>
+
+  <div class="img-wrapper">
+    <img id="previewImg">
+    <div class="overlay" id="overlay">
+      <div class="overlay-text">✨ Removing Background...</div>
+    </div>
+  </div>
+
+  <br>
+
+  <button id="removeBtn" onclick="removeBg()">Remove Background</button>
+
+  <img id="resultImg">
+
+  <br>
+
+  <button id="saveBtn" onclick="saveImage()">💾 Save Image</button>
+
+</div>
+
+<div class="marquee">
+  <div class="marquee-track">
+    <span>⚡ ᴄʀᴇᴀᴛᴇᴅ ʙʏ ɴɪᴛʜɪᴤʜ ⚡</span>
+    <span>⚡ ᴄʀᴇᴀᴛᴇᴅ ʙʏ ɴɪᴛʜɪᴤʜ ⚡</span>
+    <span>⚡ ᴄʀᴇᴀᴛᴇᴅ ʙʏ ɴɪᴛʜɪᴤʜ ⚡</span>
+    <span>⚡ ᴄʀᴇᴀᴛᴇᴅ ʙʏ ɴɪᴛʜɪᴤʜ ⚡</span>
+    <span>⚡ ᴄʀᴇᴀᴛᴇᴅ ʙʏ ɴɪᴛʜɪᴤʜ ⚡</span>
+  </div>
+</div>
+
+<script>
+let imageURL = "";
+
+function resetUI() {
+    document.getElementById("resultImg").style.display = "none";
+    document.getElementById("previewImg").style.display = "block";
+    document.getElementById("saveBtn").style.display = "none";
+    document.getElementById("removeBtn").style.display = "none";
+    imageURL = "";
+}
+
+document.getElementById("fileInput").addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    resetUI();
+
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        const img = document.getElementById("previewImg");
+        img.src = ev.target.result;
+        img.classList.add("rainbow-glow");
+    };
+    reader.readAsDataURL(file);
+
+    document.getElementById("removeBtn").style.display = "inline-block";
+});
+
+async function removeBg() {
+    const fileInput = document.getElementById("fileInput");
+
+    if (!fileInput.files[0]) {
+        alert("Please select an image");
+        return;
+    }
+
+    document.getElementById("overlay").style.display = "flex";
+
+    const formData = new FormData();
+    formData.append("image_file", fileInput.files[0]);
+    formData.append("size", "auto");
+
+    const response = await fetch("https://api.remove.bg/v1.0/removebg", {
+        method: "POST",
+        headers: {
+            "X-Api-Key": "DhWUavmDuRkuZiQGJZwg7Ef5"
+        },
+        body: formData
+    });
+
+    document.getElementById("overlay").style.display = "none";
+
+    if (!response.ok) {
+        alert("Error removing background");
+        return;
+    }
+
+    const blob = await response.blob();
+    imageURL = URL.createObjectURL(blob);
+
+    const resultImg = document.getElementById("resultImg");
+    resultImg.src = imageURL;
+    resultImg.style.display = "block";
+    resultImg.classList.add("rainbow-glow");
+
+    document.getElementById("previewImg").style.display = "none";
+    document.getElementById("saveBtn").style.display = "inline-block";
+    document.getElementById("removeBtn").style.display = "none";
+}
+
+function saveImage() {
+    const link = document.createElement("a");
+    link.href = imageURL;
+    link.download = "no-background.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+
+</body>
+</html>
